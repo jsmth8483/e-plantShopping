@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import './ProductList.css';
 import { addItem } from './CreateSlice';
+import Cart from './CartItem';
 
 function ProductList() {
     const [addedToCart, setAddedToCart] = useState({});
+    const [showCart, setShowCart] = useState(false);
+    const cart = useSelector((state) => state.cart.items);
+    const totalItemCount = Object.keys(cart).reduce((total, key) => {
+        return (total += cart[key].quantity);
+    }, 0);
     const dispatch = useDispatch();
 
     const plantsArray = [
@@ -255,8 +261,23 @@ function ProductList() {
         dispatch(addItem(plant));
         setAddedToCart((prevState) => ({
             ...prevState,
-            [product.name]: true,
+            [plant.name]: true,
         }));
+    };
+
+    const handleShowCart = () => {
+        setShowCart(!showCart);
+    };
+
+    const handleContinueShopping = () => {
+        setShowCart(false);
+    };
+
+    const handleRemoveFromCart = (plantName) => {
+        setAddedToCart((prevState) => {
+            const { [plantName]: name, ...rest } = prevState;
+            return rest;
+        });
     };
 
     return (
@@ -289,7 +310,7 @@ function ProductList() {
                     </div>
                     <div>
                         {' '}
-                        <a href='#' style={styleA}>
+                        <a href='#' style={styleA} onClick={handleShowCart}>
                             <h1 className='cart'>
                                 <svg
                                     xmlns='http://www.w3.org/2000/svg'
@@ -315,40 +336,74 @@ function ProductList() {
                                         id='mainIconPathAttribute'
                                     ></path>
                                 </svg>
+                                <span className='cart_quantity_count'>
+                                    {totalItemCount}
+                                </span>
                             </h1>
                         </a>
                     </div>
                 </div>
             </div>
 
-            <div className='product-grid'>
-                {plantsArray.map((category, index) => (
-                    <div key={index}>
-                        <h1>
-                            <div>{category.category}</div>
-                        </h1>
-                        <div className='product-list'>
-                            {category.plants.map((plant, plantIndex) => (
-                                <div className='product-card' key={plantIndex}>
-                                    <img
-                                        className='product-image'
-                                        src={plant.image}
-                                        alt={plant.name}
-                                    />
-                                    <div className='product.title'>
-                                        {plant.name}
-                                    </div>
-                                    <button
-                                        onClick={() => handleAddToCart(plant)}
+            {!showCart && (
+                <div className='product-grid'>
+                    {plantsArray.map((category, index) => (
+                        <div key={index}>
+                            <h1>
+                                <div>{category.category}</div>
+                            </h1>
+                            <div className='product-list'>
+                                {category.plants.map((plant, plantIndex) => (
+                                    <div
+                                        className='product-card'
+                                        key={plantIndex}
                                     >
-                                        Add to Cart
-                                    </button>
-                                </div>
-                            ))}
+                                        <div className='product.title'>
+                                            {plant.name}
+                                        </div>
+                                        <img
+                                            className='product-image'
+                                            src={plant.image}
+                                            alt={plant.name}
+                                        />
+                                        <div className='product-price'>
+                                            {plant.cost}
+                                        </div>
+                                        <div className='product-description'>
+                                            <i>{plant.description}</i>
+                                        </div>
+                                        <button
+                                            className={`product-button ${
+                                                addedToCart[plant.name]
+                                                    ? 'added-to-cart'
+                                                    : ''
+                                            }`}
+                                            disabled={addedToCart[plant.name]}
+                                            onClick={() =>
+                                                handleAddToCart(plant)
+                                            }
+                                        >
+                                            Add to Cart
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
+            {showCart && (
+                <div
+                    className={`product-cart-list-container ${
+                        showCart ? 'visible' : ''
+                    }`}
+                >
+                    <Cart
+                        onContinueShopping={handleContinueShopping}
+                        onRemoveFromCart={handleRemoveFromCart}
+                    />
+                </div>
+            )}
         </div>
     );
 }

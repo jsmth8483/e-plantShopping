@@ -22,9 +22,9 @@ export const CreateSlice = createSlice({
         },
         updateQuantity: (state, action) => {
             const { name, quantity } = action.payload;
-            const item = state.items.find((item) => item.name === name);
-            if (item) {
-                item.quantity = quantity;
+            const itemToUpdate = state.items.find((item) => item.name === name);
+            if (itemToUpdate) {
+                itemToUpdate.quantity = quantity;
             }
         },
     },
